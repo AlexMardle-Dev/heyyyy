@@ -1,6 +1,14 @@
 import { Router, type IRouter } from "express";
-import { db, eventsTable, categoriesTable } from "@workspace/db";
-import { eq, ilike, and, sql, or } from "drizzle-orm";
+import { db, eventsTable, categoriesTable, ticketsTable } from "@workspace/db";
+import { eq, ilike, and, sql, or, min, inArray } from "drizzle-orm";
+
+async function getMinPrice(eventId: number): Promise<number | null> {
+  const [row] = await db
+    .select({ minPrice: min(ticketsTable.price) })
+    .from(ticketsTable)
+    .where(eq(ticketsTable.eventId, eventId));
+  return row?.minPrice ? parseFloat(row.minPrice) : null;
+}
 
 const router: IRouter = Router();
 
@@ -35,13 +43,21 @@ router.get("/events/featured", async (req, res) => {
       .where(eq(eventsTable.isFeatured, true))
       .limit(8);
 
+    const eventIds = events.map((e) => e.id);
+    const priceRows = eventIds.length > 0 ? await db
+      .select({ eventId: ticketsTable.eventId, minPrice: min(ticketsTable.price) })
+      .from(ticketsTable)
+      .where(inArray(ticketsTable.eventId, eventIds))
+      .groupBy(ticketsTable.eventId) : [];
+    const priceMap = Object.fromEntries(priceRows.map(r => [r.eventId, r.minPrice ? parseFloat(r.minPrice) : null]));
+
     res.json(
       events.map((e) => ({
         ...e,
         categoryName: e.categoryName ?? "",
         createdAt: e.createdAt.toISOString(),
-        minPrice: null,
-        maxPrice: null,
+        minPrice: priceMap[e.id] ?? null,
+        maxPrice: priceMap[e.id] ?? null,
       }))
     );
   } catch (err) {
@@ -90,12 +106,13 @@ router.get("/events/:id", async (req, res) => {
       return;
     }
 
+    const minPrice = await getMinPrice(event.id);
     res.json({
       ...event,
       categoryName: event.categoryName ?? "",
       createdAt: event.createdAt.toISOString(),
-      minPrice: null,
-      maxPrice: null,
+      minPrice,
+      maxPrice: minPrice,
     });
   } catch (err) {
     req.log.error({ err }, "Error getting event");
@@ -190,13 +207,21 @@ router.get("/events", async (req, res) => {
       .limit(limitNum)
       .offset(offset);
 
+    const eventIds = events.map((e) => e.id);
+    const priceRows2 = eventIds.length > 0 ? await db
+      .select({ eventId: ticketsTable.eventId, minPrice: min(ticketsTable.price) })
+      .from(ticketsTable)
+      .where(inArray(ticketsTable.eventId, eventIds))
+      .groupBy(ticketsTable.eventId) : [];
+    const priceMap2 = Object.fromEntries(priceRows2.map(r => [r.eventId, r.minPrice ? parseFloat(r.minPrice) : null]));
+
     res.json({
       events: events.map((e) => ({
         ...e,
         categoryName: e.categoryName ?? "",
         createdAt: e.createdAt.toISOString(),
-        minPrice: null,
-        maxPrice: null,
+        minPrice: priceMap2[e.id] ?? null,
+        maxPrice: priceMap2[e.id] ?? null,
       })),
       total,
       page: pageNum,
@@ -215,7 +240,6 @@ router.post("/events", async (req, res) => {
       title,
       description,
       shortDescription,
-      imageUrl,
       startDate,
       endDate,
       location,
@@ -226,7 +250,13 @@ router.post("/events", async (req, res) => {
       isFree,
       categoryId,
       organizerName,
+      ticketName,
+      ticketPrice,
+      ticketQuantity,
     } = req.body;
+
+    const quantity = Number(ticketQuantity) || 100;
+    const price = isFree ? 0 : (Number(ticketPrice) || 0);
 
     const [event] = await db
       .insert(eventsTable)
@@ -234,19 +264,30 @@ router.post("/events", async (req, res) => {
         title,
         description,
         shortDescription,
-        imageUrl,
+        imageUrl: null,
         startDate,
         endDate,
-        location,
-        venue,
-        city,
-        state,
+        location: location || "",
+        venue: venue || "",
+        city: city || "",
+        state: state || "",
         isOnline: Boolean(isOnline),
         isFree: Boolean(isFree),
         categoryId: Number(categoryId),
         organizerName,
+        totalTickets: quantity,
+        availableTickets: quantity,
       })
       .returning();
+
+    await db.insert(ticketsTable).values({
+      eventId: event.id,
+      name: ticketName || "General Admission",
+      price: String(price),
+      quantity: quantity,
+      isFree: Boolean(isFree),
+      description: null,
+    });
 
     const [cat] = await db
       .select()
@@ -257,8 +298,8 @@ router.post("/events", async (req, res) => {
       ...event,
       categoryName: cat?.name ?? "",
       createdAt: event.createdAt.toISOString(),
-      minPrice: null,
-      maxPrice: null,
+      minPrice: price,
+      maxPrice: price,
     });
   } catch (err) {
     req.log.error({ err }, "Error creating event");

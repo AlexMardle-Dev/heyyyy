@@ -78,28 +78,19 @@ export default function EventDetail() {
     }
   };
 
-  {/* generic fallback for header image */}
-  const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&q=80";
-
   return (
     <div className="min-h-screen bg-muted/20 pb-24">
-      {/* Hero Header */}
-      <div className="w-full h-[40vh] md:h-[60vh] relative overflow-hidden bg-black">
-        <img 
-          src={event.imageUrl || defaultImage} 
-          alt={event.title}
-          className="w-full h-full object-cover opacity-60 mix-blend-overlay"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
-        
-        <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 max-w-7xl mx-auto">
-          <span className="inline-block px-3 py-1 bg-primary/20 text-primary border border-primary/30 rounded-full text-sm font-semibold mb-4 backdrop-blur-md">
+      {/* Gradient Hero Header */}
+      <div className="w-full bg-gradient-to-br from-primary via-secondary to-violet-700 relative overflow-hidden pt-24 pb-16">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 to-transparent pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 bg-white/20 text-white border border-white/30 rounded-full text-sm font-semibold mb-4 backdrop-blur-md">
             {event.categoryName}
           </span>
-          <h1 className="text-4xl md:text-6xl font-display font-bold text-foreground drop-shadow-lg mb-4 max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-4 max-w-4xl leading-tight">
             {event.title}
           </h1>
-          <p className="text-xl text-foreground/80 max-w-2xl text-shadow-sm line-clamp-2">
+          <p className="text-xl text-white/80 max-w-2xl line-clamp-2">
             {event.shortDescription}
           </p>
         </div>
