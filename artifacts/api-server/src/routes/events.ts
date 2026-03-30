@@ -1,65 +1,55 @@
 import { Router, type IRouter } from "express";
-import { db, eventsTable, categoriesTable, ticketsTable } from "@workspace/db";
-import { eq, ilike, and, sql, or, min, inArray } from "drizzle-orm";
-
-async function getMinPrice(eventId: number): Promise<number | null> {
-  const [row] = await db
-    .select({ minPrice: min(ticketsTable.price) })
-    .from(ticketsTable)
-    .where(eq(ticketsTable.eventId, eventId));
-  return row?.minPrice ? parseFloat(row.minPrice) : null;
-}
+import { db, eventsTable, categoriesTable } from "@workspace/db";
+import { eq, ilike, and, sql, or } from "drizzle-orm";
 
 const router: IRouter = Router();
+
+const EVENT_SELECT = {
+  id: eventsTable.id,
+  title: eventsTable.title,
+  description: eventsTable.description,
+  shortDescription: eventsTable.shortDescription,
+  startDate: eventsTable.startDate,
+  endDate: eventsTable.endDate,
+  location: eventsTable.location,
+  venue: eventsTable.venue,
+  city: eventsTable.city,
+  state: eventsTable.state,
+  isOnline: eventsTable.isOnline,
+  isFeatured: eventsTable.isFeatured,
+  isFree: eventsTable.isFree,
+  categoryId: eventsTable.categoryId,
+  categoryName: categoriesTable.name,
+  organizerName: eventsTable.organizerName,
+  registrationUrl: eventsTable.registrationUrl,
+  totalTickets: eventsTable.totalTickets,
+  availableTickets: eventsTable.availableTickets,
+  createdAt: eventsTable.createdAt,
+};
+
+function formatEvent(e: typeof EVENT_SELECT extends Record<string, any> ? any : any) {
+  const isFull = e.totalTickets > 0 && e.availableTickets <= 0;
+  return {
+    ...e,
+    categoryName: e.categoryName ?? "",
+    createdAt: e.createdAt instanceof Date ? e.createdAt.toISOString() : e.createdAt,
+    minPrice: null,
+    maxPrice: null,
+    attendeeCount: 0,
+    isFull,
+  };
+}
 
 router.get("/events/featured", async (req, res) => {
   try {
     const events = await db
-      .select({
-        id: eventsTable.id,
-        title: eventsTable.title,
-        description: eventsTable.description,
-        shortDescription: eventsTable.shortDescription,
-        imageUrl: eventsTable.imageUrl,
-        startDate: eventsTable.startDate,
-        endDate: eventsTable.endDate,
-        location: eventsTable.location,
-        venue: eventsTable.venue,
-        city: eventsTable.city,
-        state: eventsTable.state,
-        isOnline: eventsTable.isOnline,
-        isFeatured: eventsTable.isFeatured,
-        isFree: eventsTable.isFree,
-        categoryId: eventsTable.categoryId,
-        categoryName: categoriesTable.name,
-        organizerName: eventsTable.organizerName,
-        attendeeCount: eventsTable.attendeeCount,
-        totalTickets: eventsTable.totalTickets,
-        availableTickets: eventsTable.availableTickets,
-        createdAt: eventsTable.createdAt,
-      })
+      .select(EVENT_SELECT)
       .from(eventsTable)
       .leftJoin(categoriesTable, eq(eventsTable.categoryId, categoriesTable.id))
       .where(eq(eventsTable.isFeatured, true))
       .limit(8);
 
-    const eventIds = events.map((e) => e.id);
-    const priceRows = eventIds.length > 0 ? await db
-      .select({ eventId: ticketsTable.eventId, minPrice: min(ticketsTable.price) })
-      .from(ticketsTable)
-      .where(inArray(ticketsTable.eventId, eventIds))
-      .groupBy(ticketsTable.eventId) : [];
-    const priceMap = Object.fromEntries(priceRows.map(r => [r.eventId, r.minPrice ? parseFloat(r.minPrice) : null]));
-
-    res.json(
-      events.map((e) => ({
-        ...e,
-        categoryName: e.categoryName ?? "",
-        createdAt: e.createdAt.toISOString(),
-        minPrice: priceMap[e.id] ?? null,
-        maxPrice: priceMap[e.id] ?? null,
-      }))
-    );
+    res.json(events.map(formatEvent));
   } catch (err) {
     req.log.error({ err }, "Error getting featured events");
     res.status(500).json({ error: "Internal server error" });
@@ -74,29 +64,7 @@ router.get("/events/:id", async (req, res) => {
   }
   try {
     const [event] = await db
-      .select({
-        id: eventsTable.id,
-        title: eventsTable.title,
-        description: eventsTable.description,
-        shortDescription: eventsTable.shortDescription,
-        imageUrl: eventsTable.imageUrl,
-        startDate: eventsTable.startDate,
-        endDate: eventsTable.endDate,
-        location: eventsTable.location,
-        venue: eventsTable.venue,
-        city: eventsTable.city,
-        state: eventsTable.state,
-        isOnline: eventsTable.isOnline,
-        isFeatured: eventsTable.isFeatured,
-        isFree: eventsTable.isFree,
-        categoryId: eventsTable.categoryId,
-        categoryName: categoriesTable.name,
-        organizerName: eventsTable.organizerName,
-        attendeeCount: eventsTable.attendeeCount,
-        totalTickets: eventsTable.totalTickets,
-        availableTickets: eventsTable.availableTickets,
-        createdAt: eventsTable.createdAt,
-      })
+      .select(EVENT_SELECT)
       .from(eventsTable)
       .leftJoin(categoriesTable, eq(eventsTable.categoryId, categoriesTable.id))
       .where(eq(eventsTable.id, id));
@@ -106,14 +74,7 @@ router.get("/events/:id", async (req, res) => {
       return;
     }
 
-    const minPrice = await getMinPrice(event.id);
-    res.json({
-      ...event,
-      categoryName: event.categoryName ?? "",
-      createdAt: event.createdAt.toISOString(),
-      minPrice,
-      maxPrice: minPrice,
-    });
+    res.json(formatEvent(event));
   } catch (err) {
     req.log.error({ err }, "Error getting event");
     res.status(500).json({ error: "Internal server error" });
@@ -122,7 +83,6 @@ router.get("/events/:id", async (req, res) => {
 
 router.get("/events", async (req, res) => {
   const {
-    category,
     search,
     location,
     isFree,
@@ -160,14 +120,8 @@ router.get("/events", async (req, res) => {
       conditions.push(eq(eventsTable.isFree, true));
     }
 
-    if (category) {
-      const [cat] = await db
-        .select()
-        .from(categoriesTable)
-        .where(eq(categoriesTable.slug, category));
-      if (cat) {
-        conditions.push(eq(eventsTable.categoryId, cat.id));
-      }
+    if (isFree === "false") {
+      conditions.push(eq(eventsTable.isFree, false));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -178,51 +132,16 @@ router.get("/events", async (req, res) => {
       .where(whereClause);
 
     const events = await db
-      .select({
-        id: eventsTable.id,
-        title: eventsTable.title,
-        description: eventsTable.description,
-        shortDescription: eventsTable.shortDescription,
-        imageUrl: eventsTable.imageUrl,
-        startDate: eventsTable.startDate,
-        endDate: eventsTable.endDate,
-        location: eventsTable.location,
-        venue: eventsTable.venue,
-        city: eventsTable.city,
-        state: eventsTable.state,
-        isOnline: eventsTable.isOnline,
-        isFeatured: eventsTable.isFeatured,
-        isFree: eventsTable.isFree,
-        categoryId: eventsTable.categoryId,
-        categoryName: categoriesTable.name,
-        organizerName: eventsTable.organizerName,
-        attendeeCount: eventsTable.attendeeCount,
-        totalTickets: eventsTable.totalTickets,
-        availableTickets: eventsTable.availableTickets,
-        createdAt: eventsTable.createdAt,
-      })
+      .select(EVENT_SELECT)
       .from(eventsTable)
       .leftJoin(categoriesTable, eq(eventsTable.categoryId, categoriesTable.id))
       .where(whereClause)
+      .orderBy(eventsTable.startDate)
       .limit(limitNum)
       .offset(offset);
 
-    const eventIds = events.map((e) => e.id);
-    const priceRows2 = eventIds.length > 0 ? await db
-      .select({ eventId: ticketsTable.eventId, minPrice: min(ticketsTable.price) })
-      .from(ticketsTable)
-      .where(inArray(ticketsTable.eventId, eventIds))
-      .groupBy(ticketsTable.eventId) : [];
-    const priceMap2 = Object.fromEntries(priceRows2.map(r => [r.eventId, r.minPrice ? parseFloat(r.minPrice) : null]));
-
     res.json({
-      events: events.map((e) => ({
-        ...e,
-        categoryName: e.categoryName ?? "",
-        createdAt: e.createdAt.toISOString(),
-        minPrice: priceMap2[e.id] ?? null,
-        maxPrice: priceMap2[e.id] ?? null,
-      })),
+      events: events.map(formatEvent),
       total,
       page: pageNum,
       limit: limitNum,
@@ -250,13 +169,11 @@ router.post("/events", async (req, res) => {
       isFree,
       categoryId,
       organizerName,
-      ticketName,
-      ticketPrice,
-      ticketQuantity,
+      registrationUrl,
+      maxCapacity,
     } = req.body;
 
-    const quantity = Number(ticketQuantity) || 100;
-    const price = isFree ? 0 : (Number(ticketPrice) || 0);
+    const capacity = maxCapacity ? Number(maxCapacity) : 0;
 
     const [event] = await db
       .insert(eventsTable)
@@ -275,32 +192,18 @@ router.post("/events", async (req, res) => {
         isFree: Boolean(isFree),
         categoryId: Number(categoryId),
         organizerName,
-        totalTickets: quantity,
-        availableTickets: quantity,
+        registrationUrl: registrationUrl || null,
+        totalTickets: capacity,
+        availableTickets: capacity,
       })
       .returning();
-
-    await db.insert(ticketsTable).values({
-      eventId: event.id,
-      name: ticketName || "General Admission",
-      price: String(price),
-      quantity: quantity,
-      isFree: Boolean(isFree),
-      description: null,
-    });
 
     const [cat] = await db
       .select()
       .from(categoriesTable)
       .where(eq(categoriesTable.id, event.categoryId));
 
-    res.status(201).json({
-      ...event,
-      categoryName: cat?.name ?? "",
-      createdAt: event.createdAt.toISOString(),
-      minPrice: price,
-      maxPrice: price,
-    });
+    res.status(201).json(formatEvent({ ...event, categoryName: cat?.name }));
   } catch (err) {
     req.log.error({ err }, "Error creating event");
     res.status(500).json({ error: "Internal server error" });

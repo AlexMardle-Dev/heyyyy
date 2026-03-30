@@ -31,9 +31,10 @@ export const eventsTable = pgTable("events", {
   isFree: boolean("is_free").notNull().default(false),
   categoryId: integer("category_id").notNull().references(() => categoriesTable.id),
   organizerName: text("organizer_name").notNull(),
+  registrationUrl: text("registration_url"),
   attendeeCount: integer("attendee_count").notNull().default(0),
-  totalTickets: integer("total_tickets").notNull().default(100),
-  availableTickets: integer("available_tickets").notNull().default(100),
+  totalTickets: integer("total_tickets").notNull().default(0),
+  availableTickets: integer("available_tickets").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

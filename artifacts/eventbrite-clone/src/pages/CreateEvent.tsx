@@ -3,8 +3,8 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateEvent, useListCategories, useListTicketsByEvent } from "@workspace/api-client-react";
-import { CheckCircle2 } from "lucide-react";
+import { useCreateEvent, useListCategories } from "@workspace/api-client-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 
 const createEventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -19,9 +19,8 @@ const createEventSchema = z.object({
   isFree: z.boolean(),
   categoryId: z.coerce.number().min(1, "Category is required"),
   organizerName: z.string().min(2, "Organizer name is required"),
-  ticketName: z.string().min(2, "Ticket name is required"),
-  ticketPrice: z.coerce.number().min(0, "Price must be 0 or more"),
-  ticketQuantity: z.coerce.number().min(1, "Must have at least 1 ticket"),
+  registrationUrl: z.string().url("Must be a valid URL (e.g. https://...)").optional().or(z.literal("")),
+  maxCapacity: z.coerce.number().min(0).optional(),
 });
 
 type FormData = z.infer<typeof createEventSchema>;
@@ -47,20 +46,17 @@ export default function CreateEvent() {
       isFree: false,
       categoryId: 0,
       organizerName: "",
-      ticketName: "General Admission",
-      ticketPrice: 0,
-      ticketQuantity: 100,
+      registrationUrl: "",
+      maxCapacity: undefined,
     }
   });
 
   const isOnline = watch("isOnline");
-  const isFree = watch("isFree");
 
   const onSubmit = async (data: FormData) => {
     try {
       setSubmitError("");
-
-      const eventPayload = {
+      const payload = {
         title: data.title,
         shortDescription: data.shortDescription,
         description: data.description,
@@ -73,12 +69,10 @@ export default function CreateEvent() {
         isFree: data.isFree,
         categoryId: data.categoryId,
         organizerName: data.organizerName,
-        ticketName: data.ticketName,
-        ticketPrice: data.isFree ? 0 : data.ticketPrice,
-        ticketQuantity: data.ticketQuantity,
+        registrationUrl: data.registrationUrl || null,
+        maxCapacity: data.maxCapacity || 0,
       };
-
-      const res = await createMutation.mutateAsync({ data: eventPayload });
+      const res = await createMutation.mutateAsync({ data: payload });
       setLocation(`/events/${res.id}`);
     } catch (err: any) {
       setSubmitError(err?.message || "Failed to create event. Please try again.");
@@ -93,19 +87,18 @@ export default function CreateEvent() {
     <div className="min-h-screen pt-24 pb-20 bg-muted/10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
-          <h1 className="text-4xl font-display font-bold mb-2">Host a Networking Event</h1>
-          <p className="text-muted-foreground text-lg">Fill in the details below and your event will go live immediately.</p>
+          <h1 className="text-4xl font-display font-bold mb-2">List a Networking Event</h1>
+          <p className="text-muted-foreground text-lg">Add your event to the IAN directory. Registration happens on your own platform.</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {submitError && (
             <div className="p-4 bg-destructive/10 text-destructive rounded-xl text-sm font-medium border border-destructive/20">
               {submitError}
             </div>
           )}
 
-          {/* Basic Info */}
+          {/* Event Details */}
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="text-lg font-bold border-b border-border pb-3">Event Details</h2>
 
@@ -125,8 +118,8 @@ export default function CreateEvent() {
                 {errors.categoryId && <p className={errorClass}>{errors.categoryId.message}</p>}
               </div>
               <div>
-                <label className={labelClass}>Organizer / Host Name *</label>
-                <input {...register("organizerName")} className={inputClass} placeholder="Your name or company" />
+                <label className={labelClass}>Organizer / Host *</label>
+                <input {...register("organizerName")} className={inputClass} placeholder="Your name or organization" />
                 {errors.organizerName && <p className={errorClass}>{errors.organizerName.message}</p>}
               </div>
             </div>
@@ -169,9 +162,8 @@ export default function CreateEvent() {
             {!isOnline && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className={labelClass}>Venue *</label>
+                  <label className={labelClass}>Venue</label>
                   <input {...register("venue")} className={inputClass} placeholder="The Battery" />
-                  {errors.venue && <p className={errorClass}>{errors.venue.message}</p>}
                 </div>
                 <div>
                   <label className={labelClass}>Address</label>
@@ -186,32 +178,35 @@ export default function CreateEvent() {
             )}
           </div>
 
-          {/* Tickets */}
+          {/* Registration */}
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="text-lg font-bold border-b border-border pb-3">Tickets</h2>
+            <h2 className="text-lg font-bold border-b border-border pb-3">Registration</h2>
 
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" {...register("isFree")} className="w-4 h-4 rounded text-primary" />
-              <span className="text-sm font-medium">This is a free event</span>
-            </label>
+            <div>
+              <label className={labelClass}>
+                <ExternalLink className="inline w-4 h-4 mr-1 text-muted-foreground" />
+                External Registration URL
+              </label>
+              <input
+                {...register("registrationUrl")}
+                className={inputClass}
+                placeholder="https://lu.ma/your-event or https://eventbrite.com/e/..."
+              />
+              <p className="text-xs text-muted-foreground mt-1.5">Where attendees go to register. Leave blank if TBD.</p>
+              {errors.registrationUrl && <p className={errorClass}>{errors.registrationUrl.message}</p>}
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Ticket Name</label>
-                <input {...register("ticketName")} className={inputClass} placeholder="General Admission" />
-                {errors.ticketName && <p className={errorClass}>{errors.ticketName.message}</p>}
+                <label className={labelClass}>Max Capacity <span className="text-muted-foreground font-normal">(optional)</span></label>
+                <input type="number" min="0" {...register("maxCapacity")} className={inputClass} placeholder="Leave blank for unlimited" />
+                <p className="text-xs text-muted-foreground mt-1.5">Shows "Full" when capacity is reached.</p>
               </div>
-              {!isFree && (
-                <div>
-                  <label className={labelClass}>Price (USD)</label>
-                  <input type="number" min="0" step="0.01" {...register("ticketPrice")} className={inputClass} placeholder="50.00" />
-                  {errors.ticketPrice && <p className={errorClass}>{errors.ticketPrice.message}</p>}
-                </div>
-              )}
-              <div>
-                <label className={labelClass}>Quantity Available</label>
-                <input type="number" min="1" {...register("ticketQuantity")} className={inputClass} placeholder="100" />
-                {errors.ticketQuantity && <p className={errorClass}>{errors.ticketQuantity.message}</p>}
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input type="checkbox" {...register("isFree")} className="w-4 h-4 rounded text-primary" />
+                  <span className="text-sm font-medium">Free event</span>
+                </label>
               </div>
             </div>
           </div>
@@ -226,7 +221,7 @@ export default function CreateEvent() {
             ) : (
               <>
                 <CheckCircle2 className="w-5 h-5" />
-                Publish Event
+                List Event
               </>
             )}
           </button>
