@@ -1,21 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Search, Users, PlusCircle, Menu, X, UserCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar() {
   const [location] = useLocation();
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navLinks = [
     { name: "Browse Events", path: "/events" },
@@ -23,14 +14,7 @@ export function Navbar() {
   ];
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300 border-b",
-        isScrolled
-          ? "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-border shadow-sm py-3"
-          : "bg-transparent border-transparent py-5"
-      )}
-    >
+    <header className="fixed top-0 w-full z-50 bg-transparent border-b border-transparent py-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link

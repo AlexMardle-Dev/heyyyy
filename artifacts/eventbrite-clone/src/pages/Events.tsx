@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
 import { Search, Filter, SlidersHorizontal, MapPin } from "lucide-react";
-import { useListEvents, useListCategories } from "@workspace/api-client-react";
+import { useListEvents } from "@workspace/api-client-react";
 import { EventCard } from "@/components/events/EventCard";
-import { useDebounce } from "@/hooks/use-debounce"; // We'll create a simple one inline if needed
 
 export default function Events() {
   const [searchParams] = useState(new URLSearchParams(window.location.search));
@@ -18,17 +16,13 @@ export default function Events() {
   }, [search]);
 
   const [location, setLocation] = useState(searchParams.get("location") || "");
-  const [category, setCategory] = useState(searchParams.get("category") || "");
   const [isFree, setIsFree] = useState<boolean | undefined>(undefined);
   const [page, setPage] = useState(1);
   const limit = 12;
-
-  const { data: categoriesData } = useListCategories();
   
   const { data, isLoading, error } = useListEvents({
     search: debouncedSearch || undefined,
     location: location || undefined,
-    category: category || undefined,
     isFree,
     page,
     limit,
@@ -86,21 +80,6 @@ export default function Events() {
                   </div>
                 </div>
 
-                {/* Category */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select 
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-                  >
-                    <option value="">All Categories</option>
-                    {categoriesData?.map((cat) => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium mb-3">Price</label>
@@ -140,7 +119,7 @@ export default function Events() {
                 
                 <button 
                   onClick={() => {
-                    setSearch(""); setLocation(""); setCategory(""); setIsFree(undefined); setPage(1);
+                    setSearch(""); setLocation(""); setIsFree(undefined); setPage(1);
                   }}
                   className="w-full py-2 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors"
                 >
@@ -175,7 +154,7 @@ export default function Events() {
                 <p className="text-muted-foreground mb-6">Try adjusting your search or filters to find what you're looking for.</p>
                 <button 
                   onClick={() => {
-                    setSearch(""); setLocation(""); setCategory(""); setIsFree(undefined);
+                    setSearch(""); setLocation(""); setIsFree(undefined);
                   }}
                   className="px-6 py-2 bg-primary text-white rounded-xl font-medium"
                 >
