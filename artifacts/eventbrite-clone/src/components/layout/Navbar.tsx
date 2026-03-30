@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, Ticket, PlusCircle, Menu, X, UserCircle } from "lucide-react";
+import { Search, Users, PlusCircle, Menu, X, UserCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,16 +38,16 @@ export function Navbar() {
             className="text-2xl font-display font-bold text-gradient hover:opacity-80 transition-opacity flex items-center gap-2"
           >
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white">
-              <Ticket className="w-5 h-5 -rotate-45" />
+              <Users className="w-5 h-5" />
             </div>
-            EventHub
+            IAN
           </Link>
 
           <div className="hidden md:flex relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search events, categories, location..."
+              placeholder="Search networking events..."
               className="pl-10 pr-4 py-2.5 w-80 bg-muted/50 border border-transparent rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-background focus:border-primary/30 transition-all placeholder:text-muted-foreground/70"
             />
           </div>
@@ -75,7 +75,7 @@ export function Navbar() {
             className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
           >
             <PlusCircle className="w-4 h-4" />
-            Create Event
+            Host Event
           </Link>
           
           <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background font-medium text-sm hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5">
@@ -106,7 +106,7 @@ export function Navbar() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search events..."
                 className="w-full pl-10 pr-4 py-3 bg-muted rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
@@ -128,7 +128,7 @@ export function Navbar() {
               className="p-3 rounded-xl bg-primary/10 text-primary font-medium flex items-center gap-2"
             >
               <PlusCircle className="w-5 h-5" />
-              Create Event
+              Host Event
             </Link>
           </motion.div>
         )}
