@@ -1,0 +1,25 @@
+packages:
+  "framer-motion": "For smooth page transitions, list staggers, and rich micro-interactions"
+  "date-fns": "For formatting event dates and times beautifully"
+  "react-hook-form": "For robust ticket checkout and event creation forms"
+  "@hookform/resolvers": "Zod integration for form validation"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility to merge tailwind classes safely"
+
+images:
+  - path: "artifacts/eventbrite-clone/public/images/hero-bg.png"
+    description: "A vibrant abstract background with glowing energetic orange, deep purple light leaks, and soft glassmorphism textures, suitable for a modern event marketplace hero section"
+    aspect_ratio: "21:9"
+  - path: "artifacts/eventbrite-clone/public/images/music-cat.png"
+    description: "A high quality abstract 3D icon of headphones and musical notes in a glossy colorful style (orange and purple)"
+    aspect_ratio: "1:1"
+  - path: "artifacts/eventbrite-clone/public/images/business-cat.png"
+    description: "A high quality abstract 3D icon of a modern briefcase and graph in a glossy colorful style (orange and purple)"
+    aspect_ratio: "1:1"
+  - path: "artifacts/eventbrite-clone/public/images/food-cat.png"
+    description: "A high quality abstract 3D icon of a cocktail glass and fancy plate in a glossy colorful style (orange and purple)"
+    aspect_ratio: "1:1"
+
+notes:
+  - Uses @workspace/api-client-react for generated TanStack Query hooks.
+  - Assuming UI components like button, dialog, input exist in src/components/ui/ but will generate fully custom styled variants where needed to guarantee aesthetic quality.

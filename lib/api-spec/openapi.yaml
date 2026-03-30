@@ -1,22 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: EventHub API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Event operations
+  - name: categories
+    description: Category operations
+  - name: tickets
+    description: Ticket operations
+  - name: registrations
+    description: Registration operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,186 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: isFree
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventListResponse"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a new event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/featured:
+    get:
+      operationId: getFeaturedEvents
+      tags: [events]
+      summary: Get featured events
+      responses:
+        "200":
+          description: Featured events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /tickets:
+    get:
+      operationId: listTicketsByEvent
+      tags: [tickets]
+      summary: List tickets for an event
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of ticket types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ticket"
+
+  /registrations:
+    get:
+      operationId: listRegistrations
+      tags: [registrations]
+      summary: List all registrations
+      responses:
+        "200":
+          description: List of registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Registration"
+    post:
+      operationId: createRegistration
+      tags: [registrations]
+      summary: Register for an event / purchase tickets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRegistrationBody"
+      responses:
+        "201":
+          description: Registration created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +220,256 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        eventCount:
+          type: integer
+      required:
+        - id
+        - name
+        - slug
+        - icon
+        - eventCount
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        shortDescription:
+          type: string
+        imageUrl:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        location:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        isOnline:
+          type: boolean
+        isFeatured:
+          type: boolean
+        isFree:
+          type: boolean
+        minPrice:
+          type: number
+        maxPrice:
+          type: number
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        organizerName:
+          type: string
+        attendeeCount:
+          type: integer
+        totalTickets:
+          type: integer
+        availableTickets:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - shortDescription
+        - startDate
+        - endDate
+        - location
+        - venue
+        - city
+        - isOnline
+        - isFeatured
+        - isFree
+        - categoryId
+        - categoryName
+        - organizerName
+        - attendeeCount
+        - totalTickets
+        - availableTickets
+        - createdAt
+
+    EventListResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - events
+        - total
+        - page
+        - limit
+        - totalPages
+
+    CreateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        shortDescription:
+          type: string
+        imageUrl:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        location:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        isOnline:
+          type: boolean
+        isFree:
+          type: boolean
+        categoryId:
+          type: integer
+        organizerName:
+          type: string
+      required:
+        - title
+        - description
+        - shortDescription
+        - startDate
+        - endDate
+        - location
+        - venue
+        - city
+        - isOnline
+        - isFree
+        - categoryId
+        - organizerName
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        quantitySold:
+          type: integer
+        isFree:
+          type: boolean
+      required:
+        - id
+        - eventId
+        - name
+        - price
+        - quantity
+        - quantitySold
+        - isFree
+
+    Registration:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        eventTitle:
+          type: string
+        ticketId:
+          type: integer
+        ticketName:
+          type: string
+        attendeeName:
+          type: string
+        attendeeEmail:
+          type: string
+        quantity:
+          type: integer
+        totalAmount:
+          type: number
+        status:
+          type: string
+        confirmationCode:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - eventId
+        - eventTitle
+        - ticketId
+        - ticketName
+        - attendeeName
+        - attendeeEmail
+        - quantity
+        - totalAmount
+        - status
+        - confirmationCode
+        - createdAt
+
+    CreateRegistrationBody:
+      type: object
+      properties:
+        eventId:
+          type: integer
+        ticketId:
+          type: integer
+        attendeeName:
+          type: string
+        attendeeEmail:
+          type: string
+        quantity:
+          type: integer
+      required:
+        - eventId
+        - ticketId
+        - attendeeName
+        - attendeeEmail
+        - quantity
