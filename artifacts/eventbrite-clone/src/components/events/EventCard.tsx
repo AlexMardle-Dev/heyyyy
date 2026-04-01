@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { type Event } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/utils";
@@ -24,7 +24,8 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const date = new Date(event.startDate);
+  const date = event.startDate ? new Date(event.startDate) : null;
+  const isValidDate = date && !isNaN(date.getTime());
   const gradient = CATEGORY_GRADIENTS[event.categoryName] ?? DEFAULT_GRADIENT;
 
   return (
@@ -39,8 +40,8 @@ export function EventCard({ event }: EventCardProps) {
           </div>
           <div className="text-white">
             <div className="text-white/70 text-xs font-medium uppercase tracking-wider mb-1">{event.categoryName}</div>
-            <div className="text-3xl font-bold leading-none">{format(date, "d")}</div>
-            <div className="text-white/80 text-sm font-medium">{format(date, "MMM yyyy")}</div>
+            <div className="text-3xl font-bold leading-none">{isValidDate ? format(date!, "d") : "—"}</div>
+            <div className="text-white/80 text-sm font-medium">{isValidDate ? format(date!, "MMM yyyy") : "TBD"}</div>
           </div>
         </div>
 
@@ -53,7 +54,7 @@ export function EventCard({ event }: EventCardProps) {
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary/70 shrink-0" />
-              <span className="truncate">{format(date, "EEEE, h:mm a")}</span>
+              <span className="truncate">{isValidDate ? format(date!, "EEEE, h:mm a") : "Date TBD"}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary/70 shrink-0" />
@@ -63,12 +64,15 @@ export function EventCard({ event }: EventCardProps) {
 
           <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground mt-4">
             <span className="font-medium text-foreground truncate">{event.organizerName}</span>
-            {event.attendeeCount > 0 && (
-              <span className="flex items-center gap-1 bg-secondary/10 text-secondary px-2 py-1 rounded-md font-medium shrink-0 ml-2">
-                <Users className="w-3 h-3" />
-                {event.attendeeCount}
+            {(event as any).isFull ? (
+              <span className="bg-destructive/10 text-destructive px-2 py-1 rounded-md font-semibold shrink-0 ml-2">
+                Full
               </span>
-            )}
+            ) : (event as any).registrationUrl ? (
+              <span className="flex items-center gap-1 text-primary font-medium shrink-0 ml-2">
+                <ExternalLink className="w-3 h-3" /> Register
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
