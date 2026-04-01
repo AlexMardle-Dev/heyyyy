@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin, ArrowRight, Users, Briefcase, Laptop, GraduationCap, Rocket, Globe, Coffee, Network } from "lucide-react";
-import { useListEvents, useGetFeaturedEvents } from "@workspace/api-client-react";
+import { useGetFeaturedEvents } from "@workspace/api-client-react";
 import { EventCard } from "@/components/events/EventCard";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,6 @@ export default function Home() {
   const [searchLoc, setSearchLoc] = useState("");
 
   const { data: featuredEvents, isLoading: isLoadingFeatured } = useGetFeaturedEvents();
-  const { data: eventData, isLoading: isLoadingEvents } = useListEvents({ limit: 6, page: 1 });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,36 +154,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Trending Events */}
-      <section className="py-20 bg-muted/10 border-t border-border/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-display font-bold flex items-center gap-3">
-              <span className="inline-block w-3 h-8 bg-primary rounded-full"></span>
-              Upcoming Near You
-            </h2>
-            <Link href="/events" className="flex items-center text-primary font-medium hover:underline">
-              See all <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
-
-          {isLoadingEvents ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className="h-[400px] bg-muted animate-pulse rounded-2xl"></div>
-              ))}
-            </div>
-          ) : eventData?.events ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {eventData.events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          ) : (
-             <div className="py-12 text-center text-muted-foreground">No events found.</div>
-          )}
-        </div>
-      </section>
 
       {/* Why IAN */}
       <section className="py-24 bg-muted/20 border-t border-border/50">

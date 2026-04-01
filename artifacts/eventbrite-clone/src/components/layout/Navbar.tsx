@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, Users, PlusCircle, Menu, X, UserCircle } from "lucide-react";
+import { Search, Users, PlusCircle, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,16 +56,11 @@ export function Navbar() {
 
           <Link
             href="/create"
-            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background font-medium text-sm hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
           >
             <PlusCircle className="w-4 h-4" />
             Host Event
           </Link>
-          
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background font-medium text-sm hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5">
-            <UserCircle className="w-4 h-4" />
-            Sign In
-          </button>
         </nav>
 
         {/* Mobile Toggle */}
