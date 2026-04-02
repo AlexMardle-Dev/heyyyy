@@ -10,7 +10,6 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Browse Events", path: "/events" },
-    { name: "My Tickets", path: "/my-tickets" },
   ];
 
   return (

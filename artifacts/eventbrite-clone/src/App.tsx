@@ -11,7 +11,6 @@ import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/Home";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
-import MyTickets from "@/pages/MyTickets";
 import CreateEvent from "@/pages/CreateEvent";
 import NotFound from "@/pages/not-found";
 
@@ -47,9 +46,6 @@ function Router() {
       </Route>
       <Route path="/events/:id">
         <AppLayout><EventDetail /></AppLayout>
-      </Route>
-      <Route path="/my-tickets">
-        <AppLayout><MyTickets /></AppLayout>
       </Route>
       <Route path="/create">
         <AppLayout><CreateEvent /></AppLayout>

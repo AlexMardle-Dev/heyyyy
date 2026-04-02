@@ -88,17 +88,16 @@ export default function Home() {
               </form>
             </div>
 
-            {/* Stats */}
-            <div className="flex flex-wrap gap-8 mt-10">
+            {/* Highlights */}
+            <div className="flex flex-wrap gap-4 mt-10">
               {[
-                { label: "Professionals connected", value: "50K+" },
-                { label: "Events hosted", value: "2,400+" },
-                { label: "Cities worldwide", value: "120+" },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
+                "Free to list your event",
+                "In-person & online",
+                "Direct registration links",
+              ].map((tag) => (
+                <span key={tag} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary">
+                  ✓ {tag}
+                </span>
               ))}
             </div>
           </motion.div>
