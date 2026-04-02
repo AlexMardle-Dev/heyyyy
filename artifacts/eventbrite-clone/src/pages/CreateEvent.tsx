@@ -10,8 +10,9 @@ const createEventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   shortDescription: z.string().min(10, "Provide a short description"),
   description: z.string().min(20, "Provide full event details"),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
+  eventDate: z.string().min(1, "Event date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  finishTime: z.string().min(1, "Finish time is required"),
   venue: z.string().optional(),
   location: z.string().optional(),
   city: z.string().optional(),
@@ -37,8 +38,9 @@ export default function CreateEvent() {
       title: "",
       shortDescription: "",
       description: "",
-      startDate: "",
-      endDate: "",
+      eventDate: "",
+      startTime: "",
+      finishTime: "",
       venue: "",
       location: "",
       city: "",
@@ -60,8 +62,9 @@ export default function CreateEvent() {
         title: data.title,
         shortDescription: data.shortDescription,
         description: data.description,
-        startDate: new Date(data.startDate).toISOString(),
-        endDate: new Date(data.endDate).toISOString(),
+        eventDate: data.eventDate,
+        startTime: data.startTime,
+        finishTime: data.finishTime,
         venue: data.isOnline ? "Online" : (data.venue || ""),
         location: data.isOnline ? "Online" : (data.location || ""),
         city: data.isOnline ? "Online" : (data.city || ""),
@@ -141,16 +144,21 @@ export default function CreateEvent() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="text-lg font-bold border-b border-border pb-3">Date & Location</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={labelClass}>Start Date & Time *</label>
-                <input type="datetime-local" {...register("startDate")} className={inputClass} />
-                {errors.startDate && <p className={errorClass}>{errors.startDate.message}</p>}
+                <label className={labelClass}>Event Date *</label>
+                <input type="date" {...register("eventDate")} className={inputClass} />
+                {errors.eventDate && <p className={errorClass}>{errors.eventDate.message}</p>}
               </div>
               <div>
-                <label className={labelClass}>End Date & Time *</label>
-                <input type="datetime-local" {...register("endDate")} className={inputClass} />
-                {errors.endDate && <p className={errorClass}>{errors.endDate.message}</p>}
+                <label className={labelClass}>Start Time *</label>
+                <input type="time" {...register("startTime")} className={inputClass} />
+                {errors.startTime && <p className={errorClass}>{errors.startTime.message}</p>}
+              </div>
+              <div>
+                <label className={labelClass}>Finish Time *</label>
+                <input type="time" {...register("finishTime")} className={inputClass} />
+                {errors.finishTime && <p className={errorClass}>{errors.finishTime.message}</p>}
               </div>
             </div>
 

@@ -26,10 +26,10 @@ export default function EventDetail() {
     </div>
   );
 
-  const startDate = event.startDate ? new Date(event.startDate) : null;
-  const endDate = event.endDate ? new Date(event.endDate) : null;
-  const isValidStart = startDate && !isNaN(startDate.getTime());
-  const isValidEnd = endDate && !isNaN(endDate.getTime());
+  const eventDate = event.eventDate ? new Date(event.eventDate) : null;
+  const isValidDate = eventDate && !isNaN(eventDate.getTime());
+  const startTime = event.startTime ?? null;
+  const finishTime = event.finishTime ?? null;
   const isFull = (event as any).isFull as boolean;
   const registrationUrl = (event as any).registrationUrl as string | null;
 
@@ -79,14 +79,13 @@ export default function EventDetail() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Date & Time</h3>
-                  {isValidStart ? (
+                  {isValidDate ? (
                     <>
                       <p className="text-muted-foreground text-sm">
-                        {format(startDate!, "EEEE, MMMM d, yyyy")}
+                        {format(eventDate!, "EEEE, MMMM d, yyyy")}
                       </p>
                       <p className="text-muted-foreground text-sm">
-                        {format(startDate!, "h:mm a")}
-                        {isValidEnd && ` – ${format(endDate!, "h:mm a")}`}
+                        {startTime}{finishTime && ` – ${finishTime}`}
                       </p>
                     </>
                   ) : (
@@ -181,11 +180,11 @@ export default function EventDetail() {
               </p>
 
               {/* Date summary */}
-              {isValidStart && (
+              {isValidDate && (
                 <div className="pt-4 border-t border-border space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="w-4 h-4 text-primary/70 shrink-0" />
-                    <span>{format(startDate!, "MMMM d, yyyy • h:mm a")}</span>
+                    <span>{format(eventDate!, "MMMM d, yyyy")}{startTime && ` • ${startTime}`}{finishTime && ` – ${finishTime}`}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-4 h-4 text-primary/70 shrink-0" />

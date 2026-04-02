@@ -9,8 +9,9 @@ const EVENT_SELECT = {
   title: eventsTable.title,
   description: eventsTable.description,
   shortDescription: eventsTable.shortDescription,
-  startDate: eventsTable.startDate,
-  endDate: eventsTable.endDate,
+  eventDate: eventsTable.eventDate,
+  startTime: eventsTable.startTime,
+  finishTime: eventsTable.finishTime,
   location: eventsTable.location,
   venue: eventsTable.venue,
   city: eventsTable.city,
@@ -136,7 +137,7 @@ router.get("/events", async (req, res) => {
       .from(eventsTable)
       .leftJoin(categoriesTable, eq(eventsTable.categoryId, categoriesTable.id))
       .where(whereClause)
-      .orderBy(eventsTable.startDate)
+      .orderBy(eventsTable.eventDate)
       .limit(limitNum)
       .offset(offset);
 
@@ -159,8 +160,9 @@ router.post("/events", async (req, res) => {
       title,
       description,
       shortDescription,
-      startDate,
-      endDate,
+      eventDate,
+      startTime,
+      finishTime,
       location,
       venue,
       city,
@@ -182,8 +184,9 @@ router.post("/events", async (req, res) => {
         description,
         shortDescription,
         imageUrl: null,
-        startDate,
-        endDate,
+        eventDate,
+        startTime,
+        finishTime,
         location: location || "",
         venue: venue || "",
         city: city || "",

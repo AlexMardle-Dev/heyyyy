@@ -27,8 +27,9 @@ export interface Event {
   description: string;
   shortDescription: string;
   imageUrl?: string;
-  startDate: string;
-  endDate: string;
+  eventDate: string;
+  startTime: string;
+  finishTime: string;
   location: string;
   venue: string;
   city: string;
@@ -60,8 +61,9 @@ export interface CreateEventBody {
   description: string;
   shortDescription: string;
   imageUrl?: string;
-  startDate: string;
-  endDate: string;
+  eventDate: string;
+  startTime: string;
+  finishTime: string;
   location: string;
   venue: string;
   city: string;

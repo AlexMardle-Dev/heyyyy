@@ -24,7 +24,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const date = event.startDate ? new Date(event.startDate) : null;
+  const date = event.eventDate ? new Date(event.eventDate) : null;
   const isValidDate = date && !isNaN(date.getTime());
   const gradient = CATEGORY_GRADIENTS[event.categoryName] ?? DEFAULT_GRADIENT;
 
@@ -54,7 +54,7 @@ export function EventCard({ event }: EventCardProps) {
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary/70 shrink-0" />
-              <span className="truncate">{isValidDate ? format(date!, "EEEE, h:mm a") : "Date TBD"}</span>
+              <span className="truncate">{isValidDate ? `${format(date!, "EEEE")}${(event as any).startTime ? `, ${(event as any).startTime}` : ""}` : "Date TBD"}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary/70 shrink-0" />

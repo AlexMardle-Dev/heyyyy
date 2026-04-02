@@ -261,9 +261,11 @@ components:
           type: string
         imageUrl:
           type: string
-        startDate:
+        eventDate:
           type: string
-        endDate:
+        startTime:
+          type: string
+        finishTime:
           type: string
         location:
           type: string
@@ -302,8 +304,9 @@ components:
         - title
         - description
         - shortDescription
-        - startDate
-        - endDate
+        - eventDate
+        - startTime
+        - finishTime
         - location
         - venue
         - city
@@ -351,9 +354,11 @@ components:
           type: string
         imageUrl:
           type: string
-        startDate:
+        eventDate:
           type: string
-        endDate:
+        startTime:
+          type: string
+        finishTime:
           type: string
         location:
           type: string
@@ -375,8 +380,9 @@ components:
         - title
         - description
         - shortDescription
-        - startDate
-        - endDate
+        - eventDate
+        - startTime
+        - finishTime
         - location
         - venue
         - city
